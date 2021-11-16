@@ -1,0 +1,140 @@
+import pygame, random, sys
+
+ANCHO = 1500
+ALTO = 800
+
+FONDO = (0, 0, 0)
+
+pygame.init()
+pygame.mixer.init()
+pantalla = pygame.display.set_mode((ANCHO, ALTO))
+pygame.display.set_caption("La Epa ataca")
+clock = pygame.time.Clock()
+
+
+class Jugador(pygame.sprite.Sprite):
+    def _init_(self):
+        pygame.sprite.Sprite._init_(self)
+        self.image = pygame.image.load("PROYECTO/epa.png").convert()
+        self.image.set_colorkey(FONDO)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = ANCHO / 2
+        self.rect.centery = ALTO / 2
+        self.rect.bottom = ALTO - 10
+        self.speed_x = 0
+
+    def mejora(self):
+        self.speed_x = 0
+        keystate = pygame.key.get_pressed()
+        if keystate[pygame.K_LEFT]:
+            self.speed_x = -5
+        if keystate[pygame.K_RIGHT]:
+            self.speed_x = 5
+        self.rect.x += self.speed_x
+        if self.rect.right > ANCHO:
+            self.rect.right = ANCHO
+        if self.rect.left < 0:
+            self.rect.left = 0
+
+    def disparo(self):
+        bullet = disparo(self.rect.centerx, self.rect.top)
+        all_sprites.add(bullet)
+        bullets.add(bullet)
+
+
+class Politico1(pygame.sprite.Sprite):
+    def _init_(self):
+        pygame.sprite.Sprite._init_(self)
+        self.image = pygame.image.load("PROYECTO/politico_big1.png").convert()
+        self.image.set_colorkey(FONDO)
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randrange(ANCHO - self.rect.width)
+        self.rect.y = random.randrange(-100, -40)
+        self.speedy = random.randrange(1, 10)
+        self.speedx = random.randrange(-5, 5)
+
+    def mejora(self):
+        self.rect.x += self.speedx
+        self.rect.y += self.speedy
+        if self.rect.top > ALTO + 10 or self.rect.left < -25 or self.rect.right > ANCHO + 22:
+            self.rect.x = random.randrange(ANCHO - self.rect.width)
+            self.rect.y = random.randrange(-100, -40)
+            self.speedy = random.randrange(1, 8)
+class Politico2(pygame.sprite.Sprite):
+    def _init_(self):
+        pygame.sprite.Sprite._init_(self)
+        self.image = pygame.image.load("PROYECTO/politico_big1.png").convert()
+        self.image.set_colorkey(FONDO)
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randrange(ANCHO - self.rect.width)
+        self.rect.y = random.randrange(-100, -40)
+        self.speedy = random.randrange(1, 10)
+        self.speedx = random.randrange(-5, 5)
+
+    def mejora(self):
+        self.rect.x += self.speedx
+        self.rect.y += self.speedy
+        if self.rect.top > ALTO + 10 or self.rect.left < -25 or self.rect.right > ANCHO + 22:
+            self.rect.x = random.randrange(ANCHO - self.rect.width)
+            self.rect.y = random.randrange(-100, -40)
+            self.speedy = random.randrange(1, 8)
+
+
+class disparo(pygame.sprite.Sprite):
+    def _init_(self, x, y):
+        super()._init_()
+        self.image = pygame.image.load("PROYECTO/keratina.png")
+        self.image.set_colorkey(FONDO)
+        self.rect = self.image.get_rect()
+        self.rect.y = y
+        self.rect.centerx = x
+        self.speedy = -10
+
+    def mejora(self):
+        self.rect.y += self.speedy
+        if self.rect.bottom < 0:
+            self.kill()
+
+
+background = pygame.image.load("PROYECTO/bus.png").convert()
+
+all_sprites = pygame.sprite.Group()
+politico_list = pygame.sprite.Group()
+bullets = pygame.sprite.Group()
+
+politico = Politico1()
+player = Jugador()
+all_sprites.add(player)
+
+for i in range(8):
+    politico = Politico1()
+    all_sprites.add(politico)
+    politico_list.add(politico)
+while True:
+    clock.tick(200)
+    for evento in pygame.event.get():
+        if evento.type == pygame.QUIT:
+            sys.exit()
+        elif evento.type == pygame.K_DOWN:
+            if evento.key == pygame.K_SPACE:
+                player.disparo()
+
+   
+    #all_sprites.update()
+   
+    hits = pygame.sprite.groupcollide(politico_list, bullets, True, True)
+    for hit in hits:
+        politico = Politico1()
+        all_sprites.add(politico)
+        politico_list.add(politico)
+
+    hits = pygame.sprite.spritecollide(player, politico_list, False)
+    if hits:
+        running = False
+        
+    pantalla.blit(background, [0, 0])
+    all_sprites.draw(pantalla)
+    # after drawing everything, flip the display.
+    pygame.display.flip()
+
+pygame.quit()
